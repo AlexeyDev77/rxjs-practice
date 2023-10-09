@@ -1,17 +1,40 @@
-import { debounceTime, distinctUntilChanged, fromEvent, map, Observable} from "rxjs";
+import {debounceTime, distinctUntilChanged, fromEvent, map, Observable, takeUntil} from "rxjs";
 
 // const search$ = new Observable<Event>(observer => {
 //   const search = document.getElementById('search');
+//   const stop = document.getElementById('stop');
 //
-//   if (!search) {
+//   if (!search || !stop) {
 //     observer.error('Something went wrong!');
 //     return;
 //   }
 //
-//     search.addEventListener('input', event => {
-//       observer.next(event)
-//       // observer.complete();
-//     })
+//   const onSearch = (event: Event) => {
+//     console.log('onSearch');
+//     checkSubscription();
+//     observer.next(event);
+//   }
+//
+//   const onStop = (event: Event) => {
+//     console.log('onStop');
+//     checkSubscription();
+//     observer.complete();
+//     clear();
+//   }
+//
+//   search.addEventListener('input', onSearch);
+//   stop.addEventListener('click', onStop);
+//
+//   const checkSubscription = () => {
+//     if (observer.closed) {
+//       clear();
+//     }
+//   }
+//
+//   const clear = () => {
+//     search.removeEventListener('input', onSearch);
+//     stop.removeEventListener('click', onStop);
+//   }
 //
 // })
 
@@ -19,7 +42,11 @@ import { debounceTime, distinctUntilChanged, fromEvent, map, Observable} from "r
 const search$: Observable<Event> = fromEvent<Event>(
   document.getElementById('search')!,
   'input',
+)
 
+const stop$: Observable<Event> = fromEvent<Event>(
+  document.getElementById('stop')!,
+  'click',
 )
 
 search$.pipe(
@@ -28,7 +55,8 @@ search$.pipe(
     }),
   debounceTime(500),
   map(value => value.length > 3 ? value : ''),
-  distinctUntilChanged()
+  distinctUntilChanged(),
+  takeUntil(stop$)
 ).subscribe( {
   next: value => console.log(value),
   error: err => console.log(err),
